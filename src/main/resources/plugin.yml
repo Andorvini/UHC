@@ -1,0 +1,11 @@
+  name: UHCbyDLink
+  main: org.andorvini.Main
+  version: 1.0.0
+  api-version: 1.18
+  commands:
+    gamestart:
+        description: Starts the game
+        usage: /<command>
+    setpos:
+        description: Sets the position for teleport
+        usage: /<setpos>
