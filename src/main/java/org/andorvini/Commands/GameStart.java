@@ -32,9 +32,11 @@ public class GameStart implements CommandExecutor {
         ItemStack woodenPickaxe = new ItemStack(Material.WOODEN_PICKAXE);
         ItemStack woodenAxe = new ItemStack(Material.WOODEN_AXE);
         BossBar timerBar = plugin.getServer().createBossBar("Осталось времени:",BarColor.YELLOW,BarStyle.SEGMENTED_10);
-        PotionEffect invisibility = new PotionEffect(PotionEffectType.INVISIBILITY,12000,1,true,false);
+        int invisibilityDuration = plugin.getConfig().getInt("MatchDuration") * 20;
+        PotionEffect invisibility = new PotionEffect(PotionEffectType.INVISIBILITY,invisibilityDuration,1,true,false);
+        Collection<? extends Player> players = plugin.getServer().getOnlinePlayers();
+        ArrayList<Player> pvpPlayers = new ArrayList<>();
         if (commandSender.isOp()) {
-            Collection<? extends Player> players = plugin.getServer().getOnlinePlayers();
             for (Player onlinePlayer : players ) {
                 while (true) {
                     double x = Math.random() * 2000 - 1000;
@@ -53,12 +55,13 @@ public class GameStart implements CommandExecutor {
                         continue;
                     }
                 }
+                pvpPlayers.add(onlinePlayer);
                 onlinePlayer.addPotionEffect(invisibility);
                 onlinePlayer.getInventory().addItem(woodenAxe,woodenPickaxe);
                 timerBar.addPlayer(onlinePlayer);
                 timerBar.setProgress(1);
                 gameTimer.scheduleAtFixedRate(new TimerTask() {
-                    int i = plugin.getConfig().getInt("MatchDuration"); //ВЕРНУТЬ 600 И В 65 СТРОКЕ 300
+                    int i = plugin.getConfig().getInt("MatchDuration"); //ВЕРНУТЬ 600 И В 67 СТРОКЕ 300
                     double progressValue = 1;
                     public void run() {
                         timerBar.setTitle("Осталось времени: " + i);
@@ -111,6 +114,18 @@ public class GameStart implements CommandExecutor {
                             plugin.getServer().getWorld("world").setPVP(true);
                             onlinePlayer.sendTitle(ChatColor.GREEN + "PvP включено",null);
                             gameTimer.cancel();
+                            while (true) {
+                                if (onlinePlayer.getGameMode() == GameMode.SPECTATOR) {
+                                    pvpPlayers.remove(onlinePlayer);
+                                    continue;
+                                }
+                                if (pvpPlayers.size() == 1) {
+                                    onlinePlayer.sendTitle(pvpPlayers.get(0).getDisplayName() + "Победил",null);
+                                    break;
+                                } else {
+                                    continue;
+                                }
+                            }
                         }
                         i--;
                     }
